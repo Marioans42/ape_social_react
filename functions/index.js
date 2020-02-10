@@ -1,24 +1,14 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const express = require('express');
 
-const serviceAccount = require("../key/serviceAccountKey.json");
+const app = express();
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://socialape-d5cf7.firebaseio.com"
-});
+admin.initializeApp();
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
- exports.helloWorld = functions.https.onRequest((request, response) => {
- response.send("Hello from Firebase!");
- });
-
- exports.getScreams = functions.https.onRequest((req, res) => {
+app.get('/screams', (req,res) => {
     admin.firestore().collection('screams')
         .get()
-        .orderBy('createdAt', 'desc')
         .then(data => {
             let screams = []
             data.forEach((doc) => {
@@ -32,9 +22,9 @@ admin.initializeApp({
             return res.json(screams);
         })
         .catch((err) => console.error(err));
- })
+});
 
- exports.createScream = functions.https.onRequest((req, res) => {
+app.post('/scream',(req, res) => {
     const newScream = {
         body: req.body.body,
         userHandle: req.body.userHandle,
@@ -51,4 +41,6 @@ admin.initializeApp({
             res.status(500).json({ error: `Something went wrong`})
             console.error(err)
         })
- })
+ });
+
+ exports.api = functions.https.onRequest(app);
